@@ -62,7 +62,7 @@ public class SecurityConfig {
                                 .requestMatchers("/api/test/**").permitAll()
                                 .requestMatchers("/api/students/**").hasRole("STUDENT") // Student-specific endpoints
                                 .requestMatchers("/api/teachers/**").hasRole("TEACHER")
-                                .anyRequest().authenticated()
+                                .anyRequest().permitAll()
                 );
 
         http.authenticationProvider(authenticationProvider());

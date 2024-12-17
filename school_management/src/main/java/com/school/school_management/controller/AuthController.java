@@ -2,10 +2,10 @@ package com.school.school_management.controller;
 
 import com.school.school_management.dto.MessageResponse;
 import com.school.school_management.dto.SignupRequest;
-import com.school.school_management.model.AuthUser;
-import com.school.school_management.model.ERole;
-import com.school.school_management.model.Role;
+import com.school.school_management.model.*;
 import com.school.school_management.repository.RoleRepository;
+import com.school.school_management.repository.StudentRepository;
+import com.school.school_management.repository.TeacherRepository;
 import jakarta.validation.Valid;
 import com.school.school_management.dto.JwtResponse;
 import com.school.school_management.dto.LoginRequest;
@@ -21,6 +21,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -48,6 +50,11 @@ public class AuthController {
     @Autowired
     RoleRepository roleRepository;
 
+    @Autowired
+    private StudentRepository studentRepository;
+
+    @Autowired
+    private TeacherRepository teacherRepository;
 
 
     @PostMapping("/login")
@@ -126,6 +133,30 @@ public class AuthController {
         user.setRoles(roles);
         userRepository.save(user);
 
+        if (roles.stream().anyMatch(role -> role.getName().equals(ERole.ROLE_STUDENT))) {
+            addStudent(signUpRequest, user);
+        } else if (roles.stream().anyMatch(role -> role.getName().equals(ERole.ROLE_TEACHER))) {
+            addTeacher(signUpRequest, user);
+        }
+
         return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
+    }
+
+    private void addStudent(SignupRequest signUpRequest, AuthUser user) {
+        Student student = new Student();
+        student.setName(signUpRequest.getUsername());
+        student.setEmail(signUpRequest.getEmail());
+        student.setUser(user); // Associate with the AuthUser entity
+
+        studentRepository.save(student);
+    }
+
+    private void addTeacher(SignupRequest signUpRequest, AuthUser user) {
+        Teacher teacher = new Teacher();
+        teacher.setName(signUpRequest.getUsername());
+        teacher.setEmail(signUpRequest.getEmail());
+        teacher.setUser(user); // Associate with the AuthUser entity
+
+        teacherRepository.save(teacher);
     }
 }
